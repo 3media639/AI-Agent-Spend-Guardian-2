@@ -2,7 +2,6 @@ import 'package:go_router/go_router.dart';
 import '../../features/alerts/screens/alerts_screen.dart';
 import '../../features/auth/screens/auth_screen.dart';
 import '../../features/budget/screens/budget_settings_screen.dart';
-import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/freeze/screens/emergency_freeze_screen.dart';
 import '../../features/history/screens/spending_history_screen.dart';
 import '../../features/navigation/main_scaffold.dart';

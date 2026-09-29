@@ -7,7 +7,7 @@ class AlertsNotifier extends StateNotifier<List<AlertItem>> {
           AlertItem(
             id: 'alert_1',
             severity: AlertSeverity.warning70,
-            message: 'Your monthly spend ($82.50) has crossed 70% of your $120.00 budget.',
+            message: 'Your monthly spend (\$82.50) has crossed 70% of your \$120.00 budget.',
             timestamp: DateTime.now().subtract(const Duration(hours: 2)),
             isRead: false,
           ),

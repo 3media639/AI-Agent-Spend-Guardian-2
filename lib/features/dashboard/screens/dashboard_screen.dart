@@ -6,6 +6,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../alerts/providers/alerts_provider.dart';
 import '../../freeze/providers/freeze_provider.dart';
+import '../models/spend_data.dart';
 import '../providers/spend_provider.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -498,7 +499,7 @@ class DashboardScreen extends ConsumerWidget {
                     const SizedBox(height: 6),
                     Container(
                       width: 24,
-                      height: 80 * ratio,
+                      height: (80 * ratio).toDouble(),
                       decoration: BoxDecoration(
                         color: isToday
                             ? AppColors.primaryEmerald
