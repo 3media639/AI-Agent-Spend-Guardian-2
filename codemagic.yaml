@@ -10,6 +10,9 @@ workflows:
       vars:
         PACKAGE_NAME: "com.spendguard.ai"
     scripts:
+      - name: Generate complete platform project files
+        script: |
+          flutter create . --org com.spendguard --platforms=android
       - name: Set up local.properties
         script: |
           echo "flutter.sdk=$FLUTTER_ROOT" > "$CM_BUILD_DIR/android/local.properties"
@@ -22,8 +25,8 @@ workflows:
           flutter test
       - name: Build Android App Bundle (AAB) & APK
         script: |
+          flutter build apk --release --split-per-abi=false
           flutter build appbundle --release
-          flutter build apk --release
     artifacts:
       - build/**/outputs/**/*.aab
       - build/**/outputs/**/*.apk
@@ -43,16 +46,21 @@ workflows:
       vars:
         BUNDLE_ID: "com.spendguard.ai"
     scripts:
+      - name: Generate complete iOS platform files
+        script: |
+          flutter create . --org com.spendguard --platforms=ios
       - name: Get Flutter packages
         script: |
           flutter packages pub get
+      - name: Install CocoaPods
+        script: |
+          cd ios && pod install
       - name: Run Flutter analyzer and unit tests
         script: |
           flutter analyze
           flutter test
       - name: Build iOS IPA
         script: |
-          # Build xcarchive
           flutter build ipa --release --no-codesign
           
           # Package into ready-to-download .ipa file
