@@ -1,4 +1,52 @@
 workflows:
+  ios-workflow:
+    name: SpendGuard iOS Release Workflow
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      vars:
+        BUNDLE_ID: "com.spendguard.ai"
+    scripts:
+      - name: Generate complete iOS platform files
+        script: |
+          flutter create . --org com.spendguard --platforms=ios
+          rm -f test/widget_test.dart
+          # Ensure minimum iOS deployment target is 15.0
+          if [ -f ios/Podfile ]; then
+            sed -i '' "s/platform :ios, .*/platform :ios, '15.0'/" ios/Podfile || true
+          fi
+      - name: Get Flutter packages
+        script: |
+          flutter packages pub get
+      - name: Run Flutter analyzer and unit tests
+        script: |
+          flutter analyze || true
+          flutter test test/budget_test.dart test/provider_test.dart || true
+      - name: Build iOS IPA
+        script: |
+          # Build release without codesigning for direct sideloading
+          flutter build ipa --release --no-codesign
+          
+          # Find generated Runner.app inside xcarchive and package into .ipa
+          mkdir -p "$CM_BUILD_DIR/build/ios/ipa"
+          APP_PATH=$(find build/ios -name "Runner.app" -type d | head -n 1)
+          if [ -n "$APP_PATH" ]; then
+            mkdir -p Payload
+            cp -r "$APP_PATH" Payload/
+            zip -r "$CM_BUILD_DIR/build/ios/ipa/SpendGuard.ipa" Payload
+            echo "Successfully packaged SpendGuard.ipa!"
+          fi
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - build/ios/archive/*.xcarchive
+    publishing:
+      email:
+        recipients:
+          - dev@spendguard.ai
+
   android-workflow:
     name: SpendGuard Android Release Workflow
     max_build_duration: 60
@@ -26,56 +74,11 @@ workflows:
           flutter test test/budget_test.dart test/provider_test.dart || true
       - name: Build Android App Bundle (AAB) & APK
         script: |
-          flutter build apk --release --split-per-abi=false
+          flutter build apk --release
           flutter build appbundle --release
     artifacts:
       - build/**/outputs/**/*.aab
       - build/**/outputs/**/*.apk
-    publishing:
-      email:
-        recipients:
-          - dev@spendguard.ai
-
-  ios-workflow:
-    name: SpendGuard iOS Release Workflow
-    max_build_duration: 60
-    instance_type: mac_mini_m1
-    environment:
-      flutter: stable
-      xcode: latest
-      cocoapods: default
-      vars:
-        BUNDLE_ID: "com.spendguard.ai"
-    scripts:
-      - name: Generate complete iOS platform files
-        script: |
-          flutter create . --org com.spendguard --platforms=ios
-          rm -f test/widget_test.dart
-      - name: Get Flutter packages
-        script: |
-          flutter packages pub get
-      - name: Run Flutter analyzer and unit tests
-        script: |
-          flutter analyze || true
-          flutter test test/budget_test.dart test/provider_test.dart || true
-      - name: Build iOS IPA
-        script: |
-          # Build xcarchive via Flutter
-          flutter build ipa --release --no-codesign
-          
-          # Package into ready-to-download .ipa file
-          ARCHIVE_APP_DIR="$CM_BUILD_DIR/build/ios/archive/Runner.xcarchive/Products/Applications"
-          if [ -d "$ARCHIVE_APP_DIR" ]; then
-            cd "$ARCHIVE_APP_DIR"
-            mkdir -p Payload
-            cp -r Runner.app Payload/
-            zip -r SpendGuard.ipa Payload
-            mkdir -p "$CM_BUILD_DIR/build/ios/ipa"
-            mv SpendGuard.ipa "$CM_BUILD_DIR/build/ios/ipa/"
-          fi
-    artifacts:
-      - build/ios/ipa/*.ipa
-      - build/ios/archive/*.xcarchive
     publishing:
       email:
         recipients:
