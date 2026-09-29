@@ -14,7 +14,6 @@ workflows:
         script: |
           flutter create . --org com.spendguard --platforms=ios
           rm -f test/widget_test.dart
-          # Ensure minimum iOS deployment target is 15.0
           if [ -f ios/Podfile ]; then
             sed -i '' "s/platform :ios, .*/platform :ios, '15.0'/" ios/Podfile || true
           fi
@@ -27,21 +26,24 @@ workflows:
           flutter test test/budget_test.dart test/provider_test.dart || true
       - name: Build iOS IPA
         script: |
-          # Build release without codesigning for direct sideloading
+          # Build release archive via Flutter
           flutter build ipa --release --no-codesign
           
-          # Find generated Runner.app inside xcarchive and package into .ipa
+          # Find generated Runner.app and package into .ipa
           mkdir -p "$CM_BUILD_DIR/build/ios/ipa"
           APP_PATH=$(find build/ios -name "Runner.app" -type d | head -n 1)
           if [ -n "$APP_PATH" ]; then
+            cd "$CM_BUILD_DIR"
             mkdir -p Payload
             cp -r "$APP_PATH" Payload/
             zip -r "$CM_BUILD_DIR/build/ios/ipa/SpendGuard.ipa" Payload
+            cp "$CM_BUILD_DIR/build/ios/ipa/SpendGuard.ipa" "$CM_BUILD_DIR/SpendGuard.ipa"
             echo "Successfully packaged SpendGuard.ipa!"
           fi
     artifacts:
       - build/ios/ipa/*.ipa
-      - build/ios/archive/*.xcarchive
+      - "*.ipa"
+      - "**/*.ipa"
     publishing:
       email:
         recipients:
@@ -79,6 +81,7 @@ workflows:
     artifacts:
       - build/**/outputs/**/*.aab
       - build/**/outputs/**/*.apk
+      - "**/*.apk"
     publishing:
       email:
         recipients:
