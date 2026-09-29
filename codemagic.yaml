@@ -49,18 +49,28 @@ workflows:
       - name: Get Flutter packages
         script: |
           flutter packages pub get
-      - name: Install CocoaPods dependencies
-        script: |
-          find . -name "Podfile" -execdir pod install \;
       - name: Run Flutter analyzer and unit tests
         script: |
           flutter analyze
           flutter test
       - name: Build iOS IPA
         script: |
+          # Build xcarchive
           flutter build ipa --release --no-codesign
+          
+          # Package into ready-to-download .ipa file
+          ARCHIVE_APP_DIR="$CM_BUILD_DIR/build/ios/archive/Runner.xcarchive/Products/Applications"
+          if [ -d "$ARCHIVE_APP_DIR" ]; then
+            cd "$ARCHIVE_APP_DIR"
+            mkdir -p Payload
+            cp -r Runner.app Payload/
+            zip -r SpendGuard.ipa Payload
+            mkdir -p "$CM_BUILD_DIR/build/ios/ipa"
+            mv SpendGuard.ipa "$CM_BUILD_DIR/build/ios/ipa/"
+          fi
     artifacts:
       - build/ios/ipa/*.ipa
+      - build/ios/archive/*.xcarchive
     publishing:
       email:
         recipients:
