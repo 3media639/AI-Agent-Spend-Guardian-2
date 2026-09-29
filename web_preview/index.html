@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SpendGuard - Interactive Mobile Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    :root {
+      --primary: #10B981;
+      --primary-dark: #059669;
+      --primary-light: #34D399;
+      --danger: #EF4444;
+      --danger-dark: #DC2626;
+      --warning: #F59E0B;
+      --info: #3B82F6;
+
+      --bg-dark: #090D16;
+      --card-dark: #111827;
+      --card-hover-dark: #1F2937;
+      --border-dark: #1F293D;
+      --text-dark: #F9FAFB;
+      --text-muted-dark: #9CA3AF;
+
+      --bg-light: #F8FAFC;
+      --card-light: #FFFFFF;
+      --card-hover-light: #F1F5F9;
+      --border-light: #E2E8F0;
+      --text-light: #0F172A;
+      --text-muted-light: #64748B;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: #06090F;
+      color: #F3F4F6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+      background: rgba(17, 24, 39, 0.8);
+      backdrop-filter: blur(12px);
+      padding: 10px 20px;
+      border-radius: 40px;
+      border: 1px solid #1F293D;
+    }
+
+    .top-controls button {
+      background: transparent;
+      border: 1px solid #374151;
+      color: #D1D5DB;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .top-controls button.active, .top-controls button:hover {
+      background: #10B981;
+      border-color: #10B981;
+      color: #FFFFFF;
+    }
+
+    /* Phone Device Frame */
+    .phone-container {
+      width: 390px;
+      height: 820px;
+      background: #090D16;
+      border-radius: 50px;
+      border: 10px solid #1F2937;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 40px rgba(16, 185, 129, 0.15);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .phone-container.light-theme {
+      background: #F8FAFC;
+      border-color: #CBD5E1;
+      color: #0F172A;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.3), 0 0 30px rgba(16, 185, 129, 0.1);
+    }
+
+    /* Dynamic Island / Notch */
+    .notch {
+      width: 120px;
+      height: 28px;
+      background: #000000;
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 20px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+    }
+
+    .camera {
+      width: 10px;
+      height: 10px;
+      background: #111;
+      border-radius: 50%;
+      box-shadow: inset 0 0 2px #333;
+    }
+
+    .status-bar {
+      height: 48px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 0 26px 8px;
+      font-size: 13px;
+      font-weight: 700;
+      z-index: 90;
+    }
+
+    /* Screens Viewport */
+    .screen-viewport {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      position: relative;
+      padding-bottom: 90px;
+    }
+
+    .screen-viewport::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Screen Panels */
+    .screen {
+      display: none;
+      padding: 16px 20px;
+      min-height: 100%;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Bottom App Bar */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: rgba(17, 24, 39, 0.95);
+      backdrop-filter: blur(14px);
+      border-top: 1px solid #1F293D;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 10px 14px;
+      z-index: 80;
+    }
+
+    .light-theme .bottom-nav {
+      background: rgba(255, 255, 255, 0.95);
+      border-top-color: #E2E8F0;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: #9CA3AF;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 58px;
+      transition: color 0.2s;
+    }
+
+    .nav-item.active {
+      color: #10B981;
+    }
+
+    .nav-item i {
+      font-size: 19px;
+    }
+
+    /* Center Kill-Switch FAB */
+    .freeze-fab {
+      width: 52px;
+      height: 52px;
+      background: #DC2626;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 22px;
+      box-shadow: 0 8px 20px rgba(220, 38, 38, 0.5);
+      cursor: pointer;
+      margin-top: -30px;
+      border: 3px solid #090D16;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .freeze-fab:hover {
+      transform: scale(1.08);
+    }
+
+    .freeze-fab.frozen {
+      background: #10B981;
+      box-shadow: 0 8px 20px rgba(16, 185, 129, 0.5);
+    }
+
+    /* Cards and Utilities */
+    .card {
+      background: #111827;
+      border: 1px solid #1F293D;
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 14px;
+      transition: all 0.2s;
+    }
+
+    .light-theme .card {
+      background: #FFFFFF;
+      border-color: #E2E8F0;
+    }
+
+    .btn {
+      background: #10B981;
+      color: white;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #374151;
+      color: inherit;
+    }
+
+    .light-theme .btn-outline {
+      border-color: #CBD5E1;
+    }
+
+    .btn-danger {
+      background: #EF4444;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .badge-success {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10B981;
+    }
+
+    .badge-danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: #EF4444;
+    }
+
+    .badge-warning {
+      background: rgba(245, 158, 11, 0.15);
+      color: #F59E0B;
+    }
+
+    /* Header Bar */
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      padding-top: 4px;
+    }
+
+    .app-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      background: rgba(16, 185, 129, 0.15);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #10B981;
+      font-size: 16px;
+    }
+
+    /* Freeze Active Banner */
+    .freeze-banner {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1.5px solid #EF4444;
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 14px;
+      display: none;
+    }
+
+    .freeze-banner.active {
+      display: block;
+    }
+
+    /* Input style */
+    .form-group {
+      margin-bottom: 14px;
+      text-align: left;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #9CA3AF;
+    }
+
+    .light-theme .form-group label {
+      color: #475569;
+    }
+
+    .input-field {
+      width: 100%;
+      background: #111827;
+      border: 1px solid #1F293D;
+      border-radius: 12px;
+      padding: 12px 14px;
+      color: inherit;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .light-theme .input-field {
+      background: #FFFFFF;
+      border-color: #CBD5E1;
+    }
+
+    .input-field:focus {
+      border-color: #10B981;
+    }
+
+    /* Modal Sheet */
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 150;
+      display: none;
+      align-items: flex-end;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      width: 100%;
+      background: #111827;
+      border-top: 1px solid #1F293D;
+      border-radius: 24px 24px 0 0;
+      padding: 24px;
+      animation: slideUp 0.25s ease-out;
+    }
+
+    .light-theme .modal-content {
+      background: #FFFFFF;
+      border-top-color: #E2E8F0;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Controls -->
+  <div class="top-controls">
+    <button onclick="toggleTheme()" id="themeBtn"><i class="fa-solid fa-moon"></i> Dark Mode</button>
+    <button onclick="switchScreen('dashboard')"><i class="fa-solid fa-chart-pie"></i> Dashboard</button>
+    <button onclick="switchScreen('freeze')"><i class="fa-solid fa-shield-halved"></i> Kill-Switch</button>
+    <button onclick="switchScreen('budget')"><i class="fa-solid fa-sliders"></i> Budgets</button>
+    <button onclick="switchScreen('providers')"><i class="fa-solid fa-network-wired"></i> Providers</button>
+  </div>
+
+  <!-- Mobile Frame -->
+  <div class="phone-container" id="phoneContainer">
+    <!-- Dynamic Island -->
+    <div class="notch">
+      <div class="camera"></div>
+      <span style="font-size: 9px; color: #10B981; font-weight: bold;">SpendGuard • 24/7</span>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span>9:41</span>
+      <div style="display: flex; gap: 6px; font-size: 11px;">
+        <i class="fa-solid fa-signal"></i>
+        <i class="fa-solid fa-wifi"></i>
+        <i class="fa-solid fa-battery-full"></i>
+      </div>
+    </div>
+
+    <!-- Screens Viewport -->
+    <div class="screen-viewport">
+
+      <!-- 1. SPLASH SCREEN -->
+      <div id="screen-splash" class="screen">
+        <div style="min-height: 640px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+          <div style="width: 90px; height: 90px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); border: 2px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; font-size: 44px; color: #10B981; margin-bottom: 24px; box-shadow: 0 0 30px rgba(16, 185, 129, 0.3);">
+            <i class="fa-solid fa-shield"></i>
+          </div>
+          <h1 style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">SpendGuard</h1>
+          <p style="font-size: 14px; color: #9CA3AF; margin-top: 8px; max-width: 240px;">Stop runaway AI bills before they start.</p>
+          <div style="margin-top: 48px; width: 100%;">
+            <button class="btn" onclick="switchScreen('onboarding')">Get Started <i class="fa-solid fa-arrow-right"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. ONBOARDING SCREEN -->
+      <div id="screen-onboarding" class="screen">
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 24px;">
+          <span style="font-size: 13px; color: #10B981; font-weight: 600; cursor: pointer;" onclick="switchScreen('auth')">Skip</span>
+        </div>
+        <div style="text-align: center; padding: 20px 0;">
+          <div style="width: 110px; height: 110px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); display: flex; align-items: center; justify-content: center; font-size: 48px; color: #10B981; margin: 0 auto 32px;">
+            <i class="fa-solid fa-bolt-lightning"></i>
+          </div>
+          <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 12px;">Stop Runaway AI Bills</h2>
+          <p style="font-size: 14px; line-height: 1.6; color: #9CA3AF; margin-bottom: 40px;">
+            AI agents can get stuck in loops or trigger thousands of API calls silently. SpendGuard tracks costs real-time and alerts you instantly.
+          </p>
+          <button class="btn" onclick="switchScreen('auth')">Continue to Login</button>
+        </div>
+      </div>
+
+      <!-- 3. AUTH SCREEN -->
+      <div id="screen-auth" class="screen">
+        <div class="app-header">
+          <div class="app-brand">
+            <div class="brand-icon"><i class="fa-solid fa-shield"></i></div>
+            <span>SpendGuard</span>
+          </div>
+        </div>
+        <h2 style="font-size: 24px; font-weight: 800; margin-bottom: 6px;">Welcome Back</h2>
+        <p style="font-size: 13.5px; color: #9CA3AF; margin-bottom: 24px;">Log in to monitor live agent spending.</p>
+
+        <button class="btn btn-outline" style="margin-bottom: 10px;" onclick="switchScreen('dashboard')">
+          <i class="fa-brands fa-google"></i> Continue with Google
+        </button>
+        <button class="btn btn-outline" style="margin-bottom: 20px;" onclick="switchScreen('dashboard')">
+          <i class="fa-brands fa-apple"></i> Continue with Apple
+        </button>
+
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" class="input-field" value="alex.developer@example.com"/>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" class="input-field" value="••••••••••••"/>
+        </div>
+
+        <button class="btn" style="margin-top: 10px; margin-bottom: 14px;" onclick="switchScreen('dashboard')">Sign In</button>
+        <button class="btn btn-outline" style="border-color: #F59E0B; color: #F59E0B;" onclick="switchScreen('dashboard')">
+          <i class="fa-solid fa-bolt"></i> Explore Instant Demo Mode
+        </button>
+      </div>
+
+      <!-- 4. DASHBOARD (MAIN SCREEN) -->
+      <div id="screen-dashboard" class="screen active">
+        <!-- Top Bar -->
+        <div class="app-header">
+          <div class="app-brand">
+            <div class="brand-icon"><i class="fa-solid fa-shield"></i></div>
+            <span>SpendGuard</span>
+          </div>
+          <div style="display: flex; gap: 12px; font-size: 17px;">
+            <i class="fa-regular fa-bell" style="cursor: pointer;" onclick="switchScreen('alerts')"></i>
+            <i class="fa-solid fa-gear" style="cursor: pointer;" onclick="switchScreen('profile')"></i>
+          </div>
+        </div>
+
+        <!-- Emergency Freeze Active Warning -->
+        <div class="freeze-banner" id="activeFreezeBanner">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: #EF4444; display: flex; align-items: center; justify-content: center; color: white;">
+              <i class="fa-solid fa-lock"></i>
+            </div>
+            <div>
+              <div style="font-size: 13px; font-weight: 800; color: #EF4444;">AI SPENDING FROZEN</div>
+              <div style="font-size: 11.5px; color: #FCA5A5;">All agent calls blocked via kill-switch.</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px; margin-top: 10px;">
+            <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px; border-color: #EF4444; color: #EF4444;" onclick="switchScreen('freeze')">Details</button>
+            <button class="btn" style="padding: 6px 12px; font-size: 12px;" onclick="toggleFreeze(false)">Unfreeze Now</button>
+          </div>
+        </div>
+
+        <!-- Guardian Status Strip -->
+        <div class="card" style="padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #10B981; display: inline-block;"></span>
+            <span>Guardian Active • Spending Safe</span>
+          </div>
+          <span style="font-size: 12px; font-weight: 700; color: #EF4444; cursor: pointer;" onclick="switchScreen('freeze')">
+            <i class="fa-solid fa-bolt"></i> Freeze
+          </span>
+        </div>
+
+        <!-- Spend Hero: Today vs Month -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+          <div class="card" style="margin-bottom: 0;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #9CA3AF; margin-bottom: 6px;">
+              <span>TODAY</span>
+              <i class="fa-regular fa-calendar" style="color: #10B981;"></i>
+            </div>
+            <div style="font-size: 24px; font-weight: 800;" id="heroSpendToday">$8.50</div>
+            <div style="font-size: 11px; color: #9CA3AF; margin-top: 2px;">Cap: <span id="heroBudgetDaily">$15.00</span></div>
+          </div>
+
+          <div class="card" style="margin-bottom: 0;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #9CA3AF; margin-bottom: 6px;">
+              <span>THIS MONTH</span>
+              <i class="fa-solid fa-wallet" style="color: #3B82F6;"></i>
+            </div>
+            <div style="font-size: 24px; font-weight: 800;" id="heroSpendMonth">$82.50</div>
+            <div style="font-size: 11px; color: #9CA3AF; margin-top: 2px;">Cap: <span id="heroBudgetMonth">$120.00</span></div>
+          </div>
+        </div>
+
+        <!-- Monthly Budget Progress Bar -->
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 13.5px; font-weight: 700;">Monthly Budget Usage</span>
+            <span style="font-size: 12px; color: #10B981; font-weight: 600; cursor: pointer;" onclick="switchScreen('budget')">Edit Limits</span>
+          </div>
+          <div style="width: 100%; height: 10px; background: #1F2937; border-radius: 6px; overflow: hidden; margin-bottom: 8px;">
+            <div id="budgetProgressBar" style="width: 68.75%; height: 100%; background: #10B981; border-radius: 6px; transition: width 0.3s;"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 12px;">
+            <span style="font-weight: 700; color: #10B981;" id="budgetPercentText">69% used</span>
+            <span style="color: #9CA3AF;" id="budgetRemainingText">$37.50 remaining</span>
+          </div>
+        </div>
+
+        <!-- Daily Spending Chart (Bar Chart) -->
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <span style="font-size: 13.5px; font-weight: 700;">Daily Spend (Last 7 Days)</span>
+            <span style="font-size: 11.5px; color: #9CA3AF;">Avg $6.8/day</span>
+          </div>
+          <div style="display: flex; align-items: flex-end; justify-content: space-between; height: 100px; padding-top: 10px;">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+              <span style="font-size: 9px; color: #9CA3AF;">$4.2</span>
+              <div style="width: 22px; height: 35px; background: #1F2937; border-radius: 4px;"></div>
+              <span style="font-size: 10px; color: #9CA3AF;">M</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+              <span style="font-size: 9px; color: #9CA3AF;">$6.8</span>
+              <div style="width: 22px; height: 50px; background: #1F2937; border-radius: 4px;"></div>
+              <span style="font-size: 10px; color: #9CA3AF;">T</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+              <span style="font-size: 9px; color: #9CA3AF;">$5.1</span>
+              <div style="width: 22px; height: 40px; background: #1F2937; border-radius: 4px;"></div>
+              <span style="font-size: 10px; color: #9CA3AF;">W</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+              <span style="font-size: 9px; color: #9CA3AF;">$8.4</span>
+              <div style="width: 22px; height: 60px; background: #1F2937; border-radius: 4px;"></div>
+              <span style="font-size: 10px; color: #9CA3AF;">T</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+              <span style="font-size: 9px; color: #9CA3AF;">$11.2</span>
+              <div style="width: 22px; height: 78px; background: #1F2937; border-radius: 4px;"></div>
+              <span style="font-size: 10px; color: #9CA3AF;">F</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+              <span style="font-size: 9px; color: #9CA3AF;">$7.3</span>
+              <div style="width: 22px; height: 52px; background: #1F2937; border-radius: 4px;"></div>
+              <span style="font-size: 10px; color: #9CA3AF;">S</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+              <span style="font-size: 9px; color: #10B981; font-weight: 700;">$8.5</span>
+              <div style="width: 22px; height: 62px; background: #10B981; border-radius: 4px;"></div>
+              <span style="font-size: 10px; color: #10B981; font-weight: 700;">Today</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Breakdown by Provider -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <span style="font-size: 15px; font-weight: 700;">Spend by Provider</span>
+          <span style="font-size: 12px; color: #10B981; font-weight: 600; cursor: pointer;" onclick="switchScreen('providers')">Manage</span>
+        </div>
+
+        <!-- OpenAI Card -->
+        <div class="card" style="padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(16, 163, 127, 0.15); display: flex; align-items: center; justify-content: center; font-size: 18px; color: #10A37F; font-weight: bold;">
+              O
+            </div>
+            <div>
+              <div style="font-size: 13.5px; font-weight: 600;">OpenAI</div>
+              <div style="font-size: 11px; color: #9CA3AF;">588 API calls</div>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 14px; font-weight: 700;">$42.80</div>
+            <div style="font-size: 11px; color: #9CA3AF;">51.9%</div>
+          </div>
+        </div>
+
+        <!-- Claude Card -->
+        <div class="card" style="padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(217, 119, 6, 0.15); display: flex; align-items: center; justify-content: center; font-size: 18px; color: #D97706; font-weight: bold;">
+              C
+            </div>
+            <div>
+              <div style="font-size: 13.5px; font-weight: 600;">Anthropic Claude</div>
+              <div style="font-size: 11px; color: #9CA3AF;">399 API calls</div>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 14px; font-weight: 700;">$28.50</div>
+            <div style="font-size: 11px; color: #9CA3AF;">34.5%</div>
+          </div>
+        </div>
+
+        <!-- Gemini Card -->
+        <div class="card" style="padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(37, 99, 235, 0.15); display: flex; align-items: center; justify-content: center; font-size: 18px; color: #2563EB; font-weight: bold;">
+              G
+            </div>
+            <div>
+              <div style="font-size: 13.5px; font-weight: 600;">Google Gemini</div>
+              <div style="font-size: 11px; color: #9CA3AF;">157 API calls</div>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 14px; font-weight: 700;">$11.20</div>
+            <div style="font-size: 11px; color: #9CA3AF;">13.6%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. EMERGENCY FREEZE SCREEN -->
+      <div id="screen-freeze" class="screen">
+        <div class="app-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-arrow-left" style="cursor: pointer;" onclick="switchScreen('dashboard')"></i>
+            <span style="font-size: 17px; font-weight: 700;">Emergency Kill Switch</span>
+          </div>
+        </div>
+
+        <div style="text-align: center; padding: 20px 0;">
+          <div id="freezeStatusBadge" class="badge badge-success" style="margin-bottom: 24px; padding: 6px 14px; font-size: 12px;">
+            ● STATUS: NORMAL OPERATION
+          </div>
+
+          <!-- Giant Freeze Button -->
+          <div id="bigFreezeBtn" onclick="toggleFreeze()" style="width: 180px; height: 180px; border-radius: 50%; background: #DC2626; margin: 0 auto 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; cursor: pointer; box-shadow: 0 0 40px rgba(220, 38, 38, 0.4); transition: all 0.3s;">
+            <i class="fa-solid fa-power-off" style="font-size: 52px; margin-bottom: 8px;"></i>
+            <span style="font-size: 14px; font-weight: 900; letter-spacing: 0.5px;" id="bigFreezeText">FREEZE ALL<br>AI SPEND</span>
+          </div>
+
+          <p style="font-size: 13px; color: #9CA3AF; margin-bottom: 24px;">
+            Tap to instantly stop all agent traffic across OpenAI, Anthropic, and Gemini.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 10px;">What happens when you Freeze?</h4>
+          <div style="display: flex; gap: 10px; margin-bottom: 10px; font-size: 12px;">
+            <i class="fa-solid fa-ban" style="color: #EF4444; margin-top: 2px;"></i>
+            <span><strong>Zero Outbound Calls:</strong> Agents receive HTTP 429/403 blocks instantly.</span>
+          </div>
+          <div style="display: flex; gap: 10px; margin-bottom: 10px; font-size: 12px;">
+            <i class="fa-solid fa-rotate-left" style="color: #F59E0B; margin-top: 2px;"></i>
+            <span><strong>Looping Agents Stopped:</strong> Runaway recursion or retry loops are halted.</span>
+          </div>
+          <div style="display: flex; gap: 10px; font-size: 12px;">
+            <i class="fa-solid fa-circle-check" style="color: #10B981; margin-top: 2px;"></i>
+            <span><strong>Safe Resumption:</strong> Your API keys remain safe; unfreeze anytime.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. BUDGET SETTINGS SCREEN -->
+      <div id="screen-budget" class="screen">
+        <div class="app-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-arrow-left" style="cursor: pointer;" onclick="switchScreen('dashboard')"></i>
+            <span style="font-size: 17px; font-weight: 700;">Budget Settings</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="form-group">
+            <label>Daily Budget ($)</label>
+            <input type="number" id="inputDailyBudget" class="input-field" value="15" />
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label>Monthly Budget ($)</label>
+            <input type="number" id="inputMonthlyBudget" class="input-field" value="120" />
+          </div>
+        </div>
+
+        <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">Soft Alert Thresholds</h4>
+        <div class="card" style="padding: 12px 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div>
+              <div style="font-size: 13px; font-weight: 600;">Warning at 70%</div>
+              <div style="font-size: 11px; color: #9CA3AF;">Phone notification & email alert</div>
+            </div>
+            <input type="checkbox" checked style="width: 18px; height: 18px; accent-color: #10B981;"/>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 13px; font-weight: 600;">Critical Alert at 90%</div>
+              <div style="font-size: 11px; color: #9CA3AF;">High-priority budget exhaustion warning</div>
+            </div>
+            <input type="checkbox" checked style="width: 18px; height: 18px; accent-color: #10B981;"/>
+          </div>
+        </div>
+
+        <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">Automatic Kill Switch (Hard Limit)</h4>
+        <div class="card" style="border-color: #EF4444; background: rgba(239, 68, 68, 0.05);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 13px; font-weight: 700; color: #EF4444;">Enforce Hard Limit Freeze</div>
+              <div style="font-size: 11px; color: #9CA3AF; margin-top: 2px;">Auto-freeze if budget cap is hit</div>
+            </div>
+            <input type="checkbox" id="checkHardLimit" style="width: 18px; height: 18px; accent-color: #EF4444;"/>
+          </div>
+        </div>
+
+        <button class="btn" onclick="saveBudgets()">Save Budget Limits</button>
+      </div>
+
+      <!-- 7. CONNECT PROVIDERS SCREEN -->
+      <div id="screen-providers" class="screen">
+        <div class="app-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-arrow-left" style="cursor: pointer;" onclick="switchScreen('dashboard')"></i>
+            <span style="font-size: 17px; font-weight: 700;">Connect AI Providers</span>
+          </div>
+        </div>
+
+        <div class="card" style="padding: 10px 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+          <i class="fa-solid fa-lock" style="color: #10B981;"></i>
+          <span style="font-size: 11.5px; color: #9CA3AF;">Hardware encrypted (AES-256) on your device.</span>
+        </div>
+
+        <!-- Provider items -->
+        <div class="card" style="margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 14px; font-weight: 700;">OpenAI</div>
+              <div style="font-size: 11.5px; color: #9CA3AF;">Key: sk-proj-••••••••4a8F</div>
+            </div>
+            <span class="badge badge-success">Connected</span>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 14px; font-weight: 700;">Anthropic (Claude)</div>
+              <div style="font-size: 11.5px; color: #9CA3AF;">Key: sk-ant-••••••••99xQ</div>
+            </div>
+            <span class="badge badge-success">Connected</span>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 14px; font-weight: 700;">Google Gemini</div>
+              <div style="font-size: 11.5px; color: #9CA3AF;">Key: AIzaSy••••••••K7Lm</div>
+            </div>
+            <span class="badge badge-success">Connected</span>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 14px; font-weight: 700;">Groq Cloud</div>
+              <div style="font-size: 11.5px; color: #9CA3AF;">Ultra-fast inference</div>
+            </div>
+            <button class="btn btn-outline" style="width: auto; padding: 6px 14px; font-size: 12px;" onclick="openKeyModal('Groq Cloud')">+ Connect</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. SPENDING HISTORY SCREEN -->
+      <div id="screen-history" class="screen">
+        <div class="app-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-arrow-left" style="cursor: pointer;" onclick="switchScreen('dashboard')"></i>
+            <span style="font-size: 17px; font-weight: 700;">Spending History</span>
+          </div>
+          <i class="fa-solid fa-download" style="cursor: pointer;" onclick="alert('Spending CSV exported!')"></i>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <button class="btn" style="padding: 8px 12px; font-size: 12px;">Daily</button>
+          <button class="btn btn-outline" style="padding: 8px 12px; font-size: 12px;">Weekly</button>
+          <button class="btn btn-outline" style="padding: 8px 12px; font-size: 12px;">Monthly</button>
+        </div>
+
+        <div class="card" style="padding: 12px 14px; margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between;">
+            <div>
+              <div style="font-size: 13.5px; font-weight: 700;">Today, Sep 29</div>
+              <div style="font-size: 11.5px; color: #9CA3AF;">412 API calls • 369k tokens</div>
+            </div>
+            <div style="font-size: 15px; font-weight: 800; color: #10B981;">$8.50</div>
+          </div>
+        </div>
+
+        <div class="card" style="padding: 12px 14px; margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between;">
+            <div>
+              <div style="font-size: 13.5px; font-weight: 700;">Yesterday, Sep 28</div>
+              <div style="font-size: 11.5px; color: #9CA3AF;">340 API calls • 312k tokens</div>
+            </div>
+            <div style="font-size: 15px; font-weight: 800; color: #10B981;">$7.30</div>
+          </div>
+        </div>
+
+        <div class="card" style="padding: 12px 14px; margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between;">
+            <div>
+              <div style="font-size: 13.5px; font-weight: 700;">Friday, Sep 27</div>
+              <div style="font-size: 11.5px; color: #9CA3AF;">610 API calls • 490k tokens</div>
+            </div>
+            <div style="font-size: 15px; font-weight: 800; color: #10B981;">$11.20</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9. ALERTS SCREEN -->
+      <div id="screen-alerts" class="screen">
+        <div class="app-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-arrow-left" style="cursor: pointer;" onclick="switchScreen('dashboard')"></i>
+            <span style="font-size: 17px; font-weight: 700;">Alerts & Activity</span>
+          </div>
+          <span style="font-size: 11.5px; color: #10B981; cursor: pointer;">Clear</span>
+        </div>
+
+        <div class="card" style="padding: 12px 14px; margin-bottom: 10px; border-color: rgba(245, 158, 11, 0.4);">
+          <div style="display: flex; gap: 10px;">
+            <i class="fa-solid fa-triangle-exclamation" style="color: #F59E0B; margin-top: 2px;"></i>
+            <div>
+              <div style="font-size: 13px; font-weight: 700;">Budget Alert: 70% Reached</div>
+              <div style="font-size: 11.5px; color: #9CA3AF; margin-top: 2px;">Monthly spend reached $82.50 of $120.00 limit.</div>
+              <div style="font-size: 10px; color: #6B7280; margin-top: 4px;">2 hours ago</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="padding: 12px 14px; margin-bottom: 10px; border-color: rgba(239, 68, 68, 0.4);">
+          <div style="display: flex; gap: 10px;">
+            <i class="fa-solid fa-bolt" style="color: #EF4444; margin-top: 2px;"></i>
+            <div>
+              <div style="font-size: 13px; font-weight: 700;">Spending Anomaly Detected</div>
+              <div style="font-size: 11.5px; color: #9CA3AF; margin-top: 2px;">Claude 3.5 Sonnet generated 120 calls in 4 minutes.</div>
+              <div style="font-size: 10px; color: #6B7280; margin-top: 4px;">6 hours ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 10. PROFILE SCREEN -->
+      <div id="screen-profile" class="screen">
+        <div class="app-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-arrow-left" style="cursor: pointer;" onclick="switchScreen('dashboard')"></i>
+            <span style="font-size: 17px; font-weight: 700;">Profile & Settings</span>
+          </div>
+        </div>
+
+        <div class="card" style="display: flex; align-items: center; gap: 14px; margin-bottom: 14px;">
+          <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; color: #10B981;">
+            A
+          </div>
+          <div>
+            <div style="font-size: 15px; font-weight: 700;">Alex Carter</div>
+            <div style="font-size: 12px; color: #9CA3AF;">alex.developer@example.com</div>
+          </div>
+        </div>
+
+        <!-- Pro Tier Card -->
+        <div class="card" style="background: linear-gradient(135deg, #064E3B, #047857); border-color: #10B981; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 14px; font-weight: 800; color: white;">SpendGuard Pro</span>
+            <i class="fa-solid fa-circle-check" style="color: white;"></i>
+          </div>
+          <p style="font-size: 12px; color: #E6FFFA; margin: 6px 0 12px;">Unlimited providers, sub-second kill-switch & priority push alerts.</p>
+          <button class="btn btn-outline" style="border-color: white; color: white; padding: 8px;" onclick="alert('Subscription Active')">Manage Subscription</button>
+        </div>
+
+        <button class="btn btn-outline" style="border-color: #EF4444; color: #EF4444;" onclick="switchScreen('auth')">
+          <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="bottom-nav">
+      <div class="nav-item active" onclick="switchScreen('dashboard')" id="nav-dashboard">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>Dashboard</span>
+      </div>
+      <div class="nav-item" onclick="switchScreen('history')" id="nav-history">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+        <span>History</span>
+      </div>
+      <!-- Center Kill-Switch -->
+      <div class="freeze-fab" id="centerFab" onclick="switchScreen('freeze')">
+        <i class="fa-solid fa-power-off"></i>
+      </div>
+      <div class="nav-item" onclick="switchScreen('providers')" id="nav-providers">
+        <i class="fa-solid fa-network-wired"></i>
+        <span>Providers</span>
+      </div>
+      <div class="nav-item" onclick="switchScreen('profile')" id="nav-profile">
+        <i class="fa-solid fa-user"></i>
+        <span>Profile</span>
+      </div>
+    </div>
+
+    <!-- Connect Provider Modal -->
+    <div class="modal-overlay" id="providerModal">
+      <div class="modal-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <h3 style="font-size: 16px; font-weight: 800;" id="modalProviderTitle">Connect Provider</h3>
+          <i class="fa-solid fa-xmark" style="cursor: pointer;" onclick="closeModal()"></i>
+        </div>
+        <div class="form-group">
+          <label>API Key</label>
+          <input type="password" class="input-field" placeholder="Paste API key starting with sk-..."/>
+        </div>
+        <button class="btn" onclick="saveProviderKey()">Save & Verify</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let isFrozen = false;
+    let dailyBudget = 15;
+    let monthlyBudget = 120;
+    let spendToday = 8.50;
+    let spendMonth = 82.50;
+
+    function switchScreen(screenName) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      const target = document.getElementById('screen-' + screenName);
+      if (target) target.classList.add('active');
+
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      const activeNav = document.getElementById('nav-' + screenName);
+      if (activeNav) activeNav.classList.add('active');
+    }
+
+    function toggleFreeze(state) {
+      if (typeof state === 'boolean') {
+        isFrozen = state;
+      } else {
+        isFrozen = !isFrozen;
+      }
+
+      const banner = document.getElementById('activeFreezeBanner');
+      const badge = document.getElementById('freezeStatusBadge');
+      const bigBtn = document.getElementById('bigFreezeBtn');
+      const bigText = document.getElementById('bigFreezeText');
+      const fab = document.getElementById('centerFab');
+
+      if (isFrozen) {
+        banner.classList.add('active');
+        badge.className = 'badge badge-danger';
+        badge.innerText = '● STATUS: FROZEN (ALL CALLS BLOCKED)';
+        bigBtn.style.background = '#10B981';
+        bigBtn.style.boxShadow = '0 0 40px rgba(16, 185, 129, 0.5)';
+        bigText.innerHTML = 'TAP TO<br>UNFREEZE';
+        fab.classList.add('frozen');
+      } else {
+        banner.classList.remove('active');
+        badge.className = 'badge badge-success';
+        badge.innerText = '● STATUS: NORMAL OPERATION';
+        bigBtn.style.background = '#DC2626';
+        bigBtn.style.boxShadow = '0 0 40px rgba(220, 38, 38, 0.4)';
+        bigText.innerHTML = 'FREEZE ALL<br>AI SPEND';
+        fab.classList.remove('frozen');
+      }
+    }
+
+    function saveBudgets() {
+      const d = parseFloat(document.getElementById('inputDailyBudget').value) || 15;
+      const m = parseFloat(document.getElementById('inputMonthlyBudget').value) || 120;
+      dailyBudget = d;
+      monthlyBudget = m;
+
+      document.getElementById('heroBudgetDaily').innerText = '$' + d.toFixed(2);
+      document.getElementById('heroBudgetMonth').innerText = '$' + m.toFixed(2);
+
+      const pct = Math.min(100, Math.round((spendMonth / monthlyBudget) * 100));
+      document.getElementById('budgetProgressBar').style.width = pct + '%';
+      document.getElementById('budgetPercentText').innerText = pct + '% used';
+      document.getElementById('budgetRemainingText').innerText = '$' + Math.max(0, (monthlyBudget - spendMonth)).toFixed(2) + ' remaining';
+
+      alert('Budget settings saved successfully!');
+      switchScreen('dashboard');
+    }
+
+    function toggleTheme() {
+      const container = document.getElementById('phoneContainer');
+      const btn = document.getElementById('themeBtn');
+      container.classList.toggle('light-theme');
+      if (container.classList.contains('light-theme')) {
+        btn.innerHTML = '<i class="fa-solid fa-sun"></i> Light Mode';
+      } else {
+        btn.innerHTML = '<i class="fa-solid fa-moon"></i> Dark Mode';
+      }
+    }
+
+    function openKeyModal(name) {
+      document.getElementById('modalProviderTitle').innerText = 'Connect ' + name;
+      document.getElementById('providerModal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('providerModal').classList.remove('active');
+    }
+
+    function saveProviderKey() {
+      alert('Key validated and stored with AES-256 encryption!');
+      closeModal();
+    }
+  </script>
+</body>
+</html>

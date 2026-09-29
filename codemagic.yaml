@@ -1,0 +1,70 @@
+workflows:
+  android-workflow:
+    name: SpendGuard Android Release Workflow
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      vars:
+        PACKAGE_NAME: "com.spendguard.ai"
+    scripts:
+      - name: Set up local.properties
+        script: |
+          echo "flutter.sdk=$FLUTTER_ROOT" > "$CM_BUILD_DIR/android/local.properties"
+      - name: Get Flutter packages
+        script: |
+          flutter packages pub get
+      - name: Run Flutter analyzer and unit tests
+        script: |
+          flutter analyze
+          flutter test
+      - name: Build Android App Bundle (AAB) & APK
+        script: |
+          flutter build appbundle --release
+          flutter build apk --release
+    artifacts:
+      - build/**/outputs/**/*.aab
+      - build/**/outputs/**/*.apk
+    publishing:
+      email:
+        recipients:
+          - dev@spendguard.ai
+        notify:
+          on_success: true
+          on_failure: true
+
+  ios-workflow:
+    name: SpendGuard iOS Release Workflow
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      vars:
+        BUNDLE_ID: "com.spendguard.ai"
+    scripts:
+      - name: Get Flutter packages
+        script: |
+          flutter packages pub get
+      - name: Install CocoaPods dependencies
+        script: |
+          find . -name "Podfile" -execdir pod install \;
+      - name: Run Flutter analyzer and unit tests
+        script: |
+          flutter analyze
+          flutter test
+      - name: Build iOS IPA
+        script: |
+          flutter build ipa --release --no-codesign
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      email:
+        recipients:
+          - dev@spendguard.ai
+        notify:
+          on_success: true
+          on_failure: true
