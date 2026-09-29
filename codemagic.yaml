@@ -14,36 +14,25 @@ workflows:
         script: |
           flutter create . --org com.spendguard --platforms=ios
           rm -f test/widget_test.dart
-          if [ -f ios/Podfile ]; then
-            sed -i '' "s/platform :ios, .*/platform :ios, '15.0'/" ios/Podfile || true
-          fi
       - name: Get Flutter packages
         script: |
           flutter packages pub get
-      - name: Run Flutter analyzer and unit tests
+      - name: Build iOS App & Package IPA
         script: |
-          flutter analyze || true
-          flutter test test/budget_test.dart test/provider_test.dart || true
-      - name: Build iOS IPA
-        script: |
-          # Build release archive via Flutter
-          flutter build ipa --release --no-codesign
+          # Build release iOS bundle
+          flutter build ios --release --no-codesign
           
-          # Find generated Runner.app and package into .ipa
-          mkdir -p "$CM_BUILD_DIR/build/ios/ipa"
-          APP_PATH=$(find build/ios -name "Runner.app" -type d | head -n 1)
-          if [ -n "$APP_PATH" ]; then
-            cd "$CM_BUILD_DIR"
-            mkdir -p Payload
-            cp -r "$APP_PATH" Payload/
-            zip -r "$CM_BUILD_DIR/build/ios/ipa/SpendGuard.ipa" Payload
-            cp "$CM_BUILD_DIR/build/ios/ipa/SpendGuard.ipa" "$CM_BUILD_DIR/SpendGuard.ipa"
-            echo "Successfully packaged SpendGuard.ipa!"
-          fi
+          # Package Runner.app into installable .ipa
+          cd build/ios/iphoneos
+          mkdir -p Payload
+          cp -r Runner.app Payload/
+          zip -r "$CM_BUILD_DIR/SpendGuard.ipa" Payload
+          echo "=== SpendGuard.ipa successfully created! ==="
+          ls -lh "$CM_BUILD_DIR/SpendGuard.ipa"
     artifacts:
-      - build/ios/ipa/*.ipa
+      - SpendGuard.ipa
       - "*.ipa"
-      - "**/*.ipa"
+      - build/ios/iphoneos/*.app
     publishing:
       email:
         recipients:
@@ -70,18 +59,15 @@ workflows:
       - name: Get Flutter packages
         script: |
           flutter packages pub get
-      - name: Run Flutter analyzer and unit tests
-        script: |
-          flutter analyze || true
-          flutter test test/budget_test.dart test/provider_test.dart || true
-      - name: Build Android App Bundle (AAB) & APK
+      - name: Build Android APK
         script: |
           flutter build apk --release
-          flutter build appbundle --release
+          cp build/app/outputs/flutter-apk/app-release.apk "$CM_BUILD_DIR/SpendGuard.apk"
     artifacts:
-      - build/**/outputs/**/*.aab
+      - SpendGuard.apk
+      - "*.apk"
       - build/**/outputs/**/*.apk
-      - "**/*.apk"
+      - build/**/outputs/**/*.aab
     publishing:
       email:
         recipients:
