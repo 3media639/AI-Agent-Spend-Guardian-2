@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>SpendGuard — iOS Life Admin Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    :root {
+      --pg: #E9EBF0;
+      --bg: #F4F5F8;
+      --card: rgba(255, 255, 255, 0.76);
+      --solid: #FFFFFF;
+      --line: rgba(60, 60, 67, 0.12);
+      --tx: #1C1C1E;
+      --mut: #6E6E73;
+      --acc: #0E7C86;
+      --accs: rgba(14, 124, 134, 0.12);
+      --warn: #D98200;
+      --bad: #D6423A;
+      --ok: #2E9B5F;
+      --sh: 0 10px 30px rgba(20, 30, 50, 0.08);
+      --bezel: #1C1C1E;
+      --b1: rgba(14, 124, 134, 0.16);
+      --b2: rgba(120, 110, 220, 0.10);
+    }
+
+    [data-theme="dark"] {
+      --pg: #08090B;
+      --bg: #0E0F12;
+      --card: rgba(44, 46, 54, 0.68);
+      --solid: #1C1D22;
+      --line: rgba(255, 255, 255, 0.09);
+      --tx: #F2F2F7;
+      --mut: #9A9AA2;
+      --acc: #3CB8C3;
+      --accs: rgba(60, 184, 195, 0.16);
+      --warn: #F0A030;
+      --bad: #FF6259;
+      --ok: #4CC27F;
+      --sh: 0 12px 35px rgba(0, 0, 0, 0.45);
+      --bezel: #2A2B30;
+      --b1: rgba(60, 184, 195, 0.16);
+      --b2: rgba(140, 120, 255, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Plus Jakarta Sans", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--pg);
+      color: var(--tx);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 24px 16px 48px;
+      transition: background 0.3s;
+    }
+
+    header {
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    header h1 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    header h1 span {
+      color: var(--acc);
+    }
+
+    header p {
+      color: var(--mut);
+      font-size: 13.5px;
+      margin-top: 2px;
+    }
+
+    .toolbar-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-top {
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--tx);
+      padding: 8px 16px;
+      border-radius: 99px;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      backdrop-filter: blur(14px);
+      transition: all 0.2s;
+    }
+
+    .btn-top:hover {
+      border-color: var(--acc);
+      color: var(--acc);
+    }
+
+    /* iPhone Frame */
+    .phone-stage {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
+
+    .phone {
+      width: 375px;
+      height: 780px;
+      border-radius: 54px;
+      border: 10px solid var(--bezel);
+      background: var(--bg);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 35px 70px rgba(10, 20, 40, 0.22);
+    }
+
+    /* Dynamic Island */
+    .phone::before {
+      content: "";
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      width: 110px;
+      height: 30px;
+      margin-left: -55px;
+      border-radius: 20px;
+      background: #000;
+      z-index: 50;
+    }
+
+    .scr {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(260px 220px at 100% 0, var(--b1), transparent 70%),
+                  radial-gradient(280px 260px at 0 45%, var(--b2), transparent 70%),
+                  var(--bg);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sb {
+      height: 48px;
+      flex: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 28px 0;
+      font-weight: 600;
+      font-size: 13.5px;
+      z-index: 40;
+    }
+
+    .bat {
+      width: 22px;
+      height: 11px;
+      border: 1.5px solid var(--tx);
+      border-radius: 4px;
+      position: relative;
+      opacity: 0.85;
+    }
+
+    .bat::after {
+      content: "";
+      position: absolute;
+      inset: 1.5px 4px 1.5px 1.5px;
+      background: var(--tx);
+      border-radius: 1.5px;
+    }
+
+    .viewport {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 18px 90px;
+      scrollbar-width: none;
+    }
+
+    .viewport::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Screen management */
+    .tab-screen {
+      display: none;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    .tab-screen.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Typography & Components */
+    h2 {
+      font-size: 30px;
+      letter-spacing: -0.025em;
+      font-weight: 750;
+      line-height: 1.1;
+      margin: 4px 0 6px;
+    }
+
+    .sub {
+      color: var(--mut);
+      font-size: 13.5px;
+      font-weight: 500;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 650;
+      letter-spacing: -0.01em;
+      margin: 20px 0 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      backdrop-filter: blur(24px) saturate(1.4);
+      -webkit-backdrop-filter: blur(24px) saturate(1.4);
+      box-shadow: var(--sh);
+      margin-bottom: 12px;
+    }
+
+    .card.p {
+      padding: 16px;
+    }
+
+    /* Autopilot Alert Card */
+    .auto {
+      padding: 16px;
+      background: linear-gradient(140deg, color-mix(in srgb, var(--acc) 18%, var(--card)), var(--card) 70%);
+      margin-top: 12px;
+      border: 1px solid color-mix(in srgb, var(--acc) 30%, transparent);
+    }
+
+    .auto .top {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      color: var(--acc);
+      font-weight: 700;
+      font-size: 13.5px;
+    }
+
+    .auto p {
+      font-size: 16px;
+      font-weight: 650;
+      letter-spacing: -0.01em;
+      margin: 8px 0 12px;
+      line-height: 1.3;
+    }
+
+    .cta {
+      background: var(--acc);
+      color: #fff;
+      border: 0;
+      border-radius: 14px;
+      padding: 10px 16px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.15s;
+    }
+
+    .cta:active {
+      transform: scale(0.97);
+    }
+
+    .cta.bad {
+      background: var(--bad);
+    }
+
+    /* List Rows */
+    .list {
+      padding: 0 14px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .row:last-child {
+      border-bottom: 0;
+    }
+
+    .row:active {
+      opacity: 0.7;
+    }
+
+    .rt {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .rt b {
+      display: block;
+      font-weight: 600;
+      font-size: 14.5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .rt small {
+      color: var(--mut);
+      font-size: 12.5px;
+    }
+
+    .ib {
+      width: 36px;
+      height: 36px;
+      border-radius: 11px;
+      background: var(--accs);
+      color: var(--acc);
+      display: grid;
+      place-items: center;
+      flex: none;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .ib.w { background: color-mix(in srgb, var(--warn) 16%, transparent); color: var(--warn); }
+    .ib.b { background: color-mix(in srgb, var(--bad) 14%, transparent); color: var(--bad); }
+    .ib.o { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); }
+
+    .pill {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 99px;
+      background: var(--accs);
+      color: var(--acc);
+      white-space: nowrap;
+    }
+
+    .pill.w { background: color-mix(in srgb, var(--warn) 16%, transparent); color: var(--warn); }
+    .pill.b { background: color-mix(in srgb, var(--bad) 14%, transparent); color: var(--bad); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .tile {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .tile b {
+      font-size: 20px;
+      font-weight: 800;
+      display: block;
+      letter-spacing: -0.02em;
+    }
+
+    .tile small {
+      color: var(--mut);
+      font-size: 12px;
+    }
+
+    /* Floating Island Tabs */
+    .tabs {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 12px;
+      height: 66px;
+      border-radius: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      z-index: 35;
+      padding: 0 6px;
+    }
+
+    .tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 10px;
+      color: var(--mut);
+      width: 52px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+
+    .tab.on {
+      color: var(--acc);
+    }
+
+    .tab i {
+      font-size: 18px;
+    }
+
+    /* Emergency Center Kill Switch */
+    .fab {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--bad);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 8px 18px color-mix(in srgb, var(--bad) 45%, transparent);
+      cursor: pointer;
+      margin-top: -24px;
+      font-size: 20px;
+      transition: transform 0.2s;
+    }
+
+    .fab:active {
+      transform: scale(0.92);
+    }
+
+    .fab.active-frozen {
+      background: var(--ok);
+      box-shadow: 0 8px 18px color-mix(in srgb, var(--ok) 45%, transparent);
+    }
+
+    /* Circular Ring */
+    .ring {
+      display: grid;
+      place-items: center;
+      position: relative;
+      width: 140px;
+      height: 140px;
+      margin: 10px auto 4px;
+    }
+
+    .ring svg {
+      position: absolute;
+      inset: 0;
+      transform: rotate(-90deg);
+    }
+
+    .ring circle {
+      fill: none;
+      stroke-width: 9;
+      stroke-linecap: round;
+    }
+
+    .ring .t {
+      stroke: var(--line);
+    }
+
+    .ring .p {
+      stroke: var(--acc);
+      stroke-dasharray: 377;
+      stroke-dashoffset: 96;
+      transition: stroke-dashoffset 1.4s cubic-bezier(.2, .8, .2, 1);
+    }
+
+    .ring div {
+      text-align: center;
+    }
+
+    .ring strong {
+      font-size: 32px;
+      letter-spacing: -0.03em;
+      display: block;
+      line-height: 1;
+    }
+
+    .ring small {
+      color: var(--mut);
+      font-size: 12px;
+    }
+
+    /* Toggle Switch */
+    .tg {
+      width: 46px;
+      height: 28px;
+      border-radius: 99px;
+      background: var(--line);
+      position: relative;
+      cursor: pointer;
+      transition: background 0.25s;
+      flex: none;
+    }
+
+    .tg::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+      transition: transform 0.25s;
+    }
+
+    .tg.on {
+      background: var(--ok);
+    }
+
+    .tg.on::after {
+      transform: translateX(18px);
+    }
+
+    .fr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .fr:last-child {
+      border-bottom: 0;
+    }
+
+    .fr span {
+      color: var(--mut);
+      font-size: 14px;
+    }
+
+    .fr b {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .chips {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      margin: 10px 0;
+    }
+
+    .chip {
+      padding: 6px 14px;
+      border-radius: 99px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .chip.on {
+      background: var(--acc);
+      color: #fff;
+      border-color: transparent;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>SpendGuard <span>· iOS Human Interface</span></h1>
+    <p>AI Agent Spend Guardian — Pure iPhone Experience with Life Admin Design</p>
+  </div>
+  <div class="toolbar-actions">
+    <button class="btn-top" id="freezeToggleBtn">
+      <i class="fa-solid fa-power-off" style="color:var(--bad)"></i>
+      <span id="freezeToggleTxt">Trigger Freeze</span>
+    </button>
+    <button class="btn-top" id="modeBtn">
+      <i class="fa-solid fa-moon"></i>
+      <span id="modeTxt">Dark Mode</span>
+    </button>
+  </div>
+</header>
+
+<div class="phone-stage">
+  <div class="phone">
+    <div class="scr">
+      <!-- iOS Status Bar -->
+      <div class="sb">
+        <span>9:41</span>
+        <span class="bat"></span>
+      </div>
+
+      <!-- Scrollable Viewport -->
+      <div class="viewport">
+        <!-- TAB 0: HOME DASHBOARD -->
+        <div class="tab-screen active" id="tab-dashboard">
+          <div class="sub" style="margin-top:6px">Wednesday, 6 October</div>
+          <h2>Spend Guardian</h2>
+
+          <!-- Autopilot Active Banner -->
+          <div class="card auto" id="autopilotCard">
+            <div class="top"><i class="fa-solid fa-sparkles"></i> Guardian Autopilot Active</div>
+            <p id="autopilotStatus">All 3 agent connections safe. Daily budget 42% consumed.</p>
+            <div style="display:flex;gap:8px">
+              <button class="cta" onclick="switchTab(1)"><i class="fa-solid fa-clock-rotate-left"></i> History</button>
+              <button class="cta bad" onclick="triggerFreeze()"><i class="fa-solid fa-lock"></i> Freeze</button>
+            </div>
+          </div>
+
+          <!-- Circular Spend Ring -->
+          <div class="card p" style="text-align:center">
+            <div class="ring">
+              <svg viewBox="0 0 140 140">
+                <circle class="t" cx="70" cy="70" r="60"/>
+                <circle class="p" id="ringProgress" cx="70" cy="70" r="60"/>
+              </svg>
+              <div>
+                <strong id="ringRemaining">$57.60</strong>
+                <small>budget remaining</small>
+              </div>
+            </div>
+            <p class="sub" style="margin-top:8px">Monthly cap: $100.00 · Resets in 24 days</p>
+          </div>
+
+          <!-- 2 Hero Metric Cards -->
+          <div class="grid">
+            <div class="card tile" onclick="switchTab(1)">
+              <span class="ib"><i class="fa-solid fa-bolt"></i></span>
+              <div>
+                <small>TODAY SPENT</small>
+                <b>$4.20</b>
+              </div>
+            </div>
+            <div class="card tile" onclick="switchTab(1)">
+              <span class="ib o"><i class="fa-solid fa-chart-pie"></i></span>
+              <div>
+                <small>THIS MONTH</small>
+                <b>$42.40</b>
+              </div>
+            </div>
+          </div>
+
+          <!-- Connected Providers List -->
+          <div style="display:flex;justify-content:space-between;align-items:center;margin:16px 0 8px">
+            <h3 style="margin:0">Active Providers</h3>
+            <span class="pill" onclick="switchTab(2)" style="cursor:pointer">Manage</span>
+          </div>
+
+          <div class="card list">
+            <div class="row">
+              <span class="ib" style="color:#10A37F;background:rgba(16,163,127,0.12)">O</span>
+              <div class="rt">
+                <b>OpenAI</b>
+                <small>184 API calls · GPT-4o</small>
+              </div>
+              <span class="pill">$21.80</span>
+            </div>
+            <div class="row">
+              <span class="ib w">C</span>
+              <div class="rt">
+                <b>Anthropic Claude</b>
+                <small>96 API calls · Sonnet 3.5</small>
+              </div>
+              <span class="pill w">$16.20</span>
+            </div>
+            <div class="row">
+              <span class="ib o">G</span>
+              <div class="rt">
+                <b>Google Gemini</b>
+                <small>140 API calls · Flash 1.5</small>
+              </div>
+              <span class="pill">$4.40</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 1: HISTORY -->
+        <div class="tab-screen" id="tab-history">
+          <div class="sub" style="margin-top:6px">Audit Log</div>
+          <h2>Spend History</h2>
+
+          <div class="chips">
+            <span class="chip on">Daily</span>
+            <span class="chip">Weekly</span>
+            <span class="chip">Monthly</span>
+          </div>
+
+          <div class="card list">
+            <div class="row">
+              <span class="ib"><i class="fa-solid fa-calendar-day"></i></span>
+              <div class="rt"><b>Today, Oct 6</b><small>420 API calls</small></div>
+              <b>$4.20</b>
+            </div>
+            <div class="row">
+              <span class="ib"><i class="fa-solid fa-calendar-day"></i></span>
+              <div class="rt"><b>Yesterday, Oct 5</b><small>538 API calls</small></div>
+              <b>$7.10</b>
+            </div>
+            <div class="row">
+              <span class="ib"><i class="fa-solid fa-calendar-day"></i></span>
+              <div class="rt"><b>Sunday, Oct 4</b><small>210 API calls</small></div>
+              <b>$2.80</b>
+            </div>
+            <div class="row">
+              <span class="ib b"><i class="fa-solid fa-triangle-exclamation"></i></span>
+              <div class="rt"><b>Saturday, Oct 3</b><small>Loop detected · Stopped</small></div>
+              <b style="color:var(--bad)">$14.50</b>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: PROVIDERS -->
+        <div class="tab-screen" id="tab-providers">
+          <div class="sub" style="margin-top:6px">API Credentials</div>
+          <h2>AI Providers</h2>
+
+          <div class="card list">
+            <div class="row">
+              <span class="ib" style="color:#10A37F;background:rgba(16,163,127,0.12)">O</span>
+              <div class="rt">
+                <b>OpenAI</b>
+                <small>sk-proj-••••9281 · Active</small>
+              </div>
+              <span class="pill">Connected</span>
+            </div>
+            <div class="row">
+              <span class="ib w">C</span>
+              <div class="rt">
+                <b>Anthropic Claude</b>
+                <small>sk-ant-••••4103 · Active</small>
+              </div>
+              <span class="pill">Connected</span>
+            </div>
+            <div class="row">
+              <span class="ib o">G</span>
+              <div class="rt">
+                <b>Google Gemini</b>
+                <small>AIzaSy••••5129 · Active</small>
+              </div>
+              <span class="pill">Connected</span>
+            </div>
+          </div>
+
+          <button class="cta" style="width:100%;justify-content:center;margin-top:8px" onclick="alert('API Key modal: Keys encrypted in iOS Keychain with AES-256.')">
+            <i class="fa-solid fa-plus"></i> Connect New Provider
+          </button>
+        </div>
+
+        <!-- TAB 3: PROFILE & SETTINGS -->
+        <div class="tab-screen" id="tab-profile">
+          <div class="sub" style="margin-top:6px">Account & System</div>
+          <h2>Preferences</h2>
+
+          <div class="card list">
+            <div class="row">
+              <span class="ib"><i class="fa-solid fa-shield-halved"></i></span>
+              <div class="rt"><b>Pro Protection</b><small>Unlimited providers · Active</small></div>
+              <span class="pill">Active</span>
+            </div>
+            <div class="row">
+              <span class="ib"><i class="fa-solid fa-bell"></i></span>
+              <div class="rt"><b>70% & 90% Push Alerts</b><small>Instant notification</small></div>
+              <div class="tg on"></div>
+            </div>
+            <div class="row">
+              <span class="ib"><i class="fa-solid fa-fingerprint"></i></span>
+              <div class="rt"><b>Face ID Freeze Protect</b><small>Require biometric unlock</small></div>
+              <div class="tg on"></div>
+            </div>
+          </div>
+
+          <div class="card field">
+            <div class="fr"><span>Daily Budget</span><b>$10.00 / day</b></div>
+            <div class="fr"><span>Monthly Cap</span><b>$100.00 / mo</b></div>
+            <div class="fr"><span>Kill-Switch Trigger</span><b>Hard Stop</b></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Floating Island Bottom Navigation -->
+      <nav class="tabs card">
+        <div class="tab on" onclick="switchTab(0)">
+          <i class="fa-solid fa-house"></i>
+          <span>Home</span>
+        </div>
+        <div class="tab" onclick="switchTab(1)">
+          <i class="fa-solid fa-chart-simple"></i>
+          <span>History</span>
+        </div>
+        <div class="fab" id="emergencyFab" onclick="triggerFreeze()" title="Emergency Freeze">
+          <i class="fa-solid fa-power-off" id="fabIcon"></i>
+        </div>
+        <div class="tab" onclick="switchTab(2)">
+          <i class="fa-solid fa-cubes"></i>
+          <span>Providers</span>
+        </div>
+        <div class="tab" onclick="switchTab(3)">
+          <i class="fa-solid fa-gear"></i>
+          <span>Profile</span>
+        </div>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<script>
+  let isFrozen = false;
+  let activeTabIndex = 0;
+
+  function switchTab(index) {
+    activeTabIndex = index;
+    const tabScreens = [
+      document.getElementById('tab-dashboard'),
+      document.getElementById('tab-history'),
+      document.getElementById('tab-providers'),
+      document.getElementById('tab-profile')
+    ];
+    const navItems = document.querySelectorAll('.tabs .tab');
+
+    tabScreens.forEach((scr, i) => {
+      scr.classList.toggle('active', i === index);
+    });
+
+    navItems.forEach((tab, i) => {
+      tab.classList.toggle('on', i === index);
+    });
+  }
+
+  function triggerFreeze() {
+    isFrozen = !isFrozen;
+    const card = document.getElementById('autopilotCard');
+    const fab = document.getElementById('emergencyFab');
+    const fabIcon = document.getElementById('fabIcon');
+    const statusTxt = document.getElementById('autopilotStatus');
+    const freezeToggleTxt = document.getElementById('freezeToggleTxt');
+
+    if (isFrozen) {
+      card.style.background = 'linear-gradient(140deg, color-mix(in srgb, var(--bad) 25%, var(--card)), var(--card) 70%)';
+      card.style.borderColor = 'var(--bad)';
+      card.querySelector('.top').innerHTML = '<i class="fa-solid fa-lock"></i> ALL AI SPENDING FROZEN';
+      card.querySelector('.top').style.color = 'var(--bad)';
+      statusTxt.innerText = 'Kill-switch activated! All outgoing agent calls blocked with HTTP 429.';
+      fab.classList.add('active-frozen');
+      fabIcon.className = 'fa-solid fa-lock-open';
+      freezeToggleTxt.innerText = 'Unfreeze Agent';
+    } else {
+      card.style.background = '';
+      card.style.borderColor = '';
+      card.querySelector('.top').innerHTML = '<i class="fa-solid fa-sparkles"></i> Guardian Autopilot Active';
+      card.querySelector('.top').style.color = '';
+      statusTxt.innerText = 'All 3 agent connections safe. Daily budget 42% consumed.';
+      fab.classList.remove('active-frozen');
+      fabIcon.className = 'fa-solid fa-power-off';
+      freezeToggleTxt.innerText = 'Trigger Freeze';
+    }
+  }
+
+  document.getElementById('freezeToggleBtn').onclick = triggerFreeze;
+
+  // Dark Mode Toggle
+  const modeBtn = document.getElementById('modeBtn');
+  const modeTxt = document.getElementById('modeTxt');
+  const root = document.documentElement;
+
+  modeBtn.onclick = () => {
+    const isDark = root.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+      root.removeAttribute('data-theme');
+      modeTxt.innerText = 'Dark Mode';
+    } else {
+      root.setAttribute('data-theme', 'dark');
+      modeTxt.innerText = 'Light Mode';
+    }
+  };
+
+  // Toggle switch interaction
+  document.addEventListener('click', e => {
+    const tg = e.target.closest('.tg');
+    if (tg) tg.classList.toggle('on');
+    const chip = e.target.closest('.chip');
+    if (chip) {
+      chip.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+      chip.classList.add('on');
+    }
+  });
+</script>
+
+</body>
+</html>
