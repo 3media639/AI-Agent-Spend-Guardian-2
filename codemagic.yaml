@@ -14,20 +14,31 @@ workflows:
         script: |
           flutter create . --org com.spendguard --platforms=ios
           rm -f test/widget_test.dart
+      - name: Configure iOS Info.plist for Sideloading
+        script: |
+          PLIST="ios/Runner/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string com.spendguard.ai" "$PLIST" 2>/dev/null || /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.spendguard.ai" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleName string SpendGuard" "$PLIST" 2>/dev/null || /usr/libexec/PlistBuddy -c "Set :CFBundleName SpendGuard" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string SpendGuard" "$PLIST" 2>/dev/null || /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName SpendGuard" "$PLIST"
       - name: Get Flutter packages
         script: |
           flutter packages pub get
-      - name: Build iOS App & Package IPA
+      - name: Build iOS App & Package Valid IPA
         script: |
-          # Build release iOS bundle
+          # 1. Build release iOS bundle
           flutter build ios --release --no-codesign
           
-          # Package Runner.app into installable .ipa
+          # 2. Package standard Payload structure for Scarlet / Sideloadly / AltStore
           cd build/ios/iphoneos
+          rm -rf Payload SpendGuard.ipa
           mkdir -p Payload
-          cp -r Runner.app Payload/
-          zip -r "$CM_BUILD_DIR/SpendGuard.ipa" Payload
-          echo "=== SpendGuard.ipa successfully created! ==="
+          cp -r Runner.app Payload/SpendGuard.app
+          
+          # 3. Create zip with exact standard zip format (no extra parent directories)
+          zip -qr9 SpendGuard.ipa Payload
+          cp SpendGuard.ipa "$CM_BUILD_DIR/SpendGuard.ipa"
+          
+          echo "=== Verified Installable SpendGuard.ipa Created! ==="
           ls -lh "$CM_BUILD_DIR/SpendGuard.ipa"
     artifacts:
       - SpendGuard.ipa
